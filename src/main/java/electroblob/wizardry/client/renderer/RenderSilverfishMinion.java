@@ -14,7 +14,6 @@ import net.minecraft.util.ResourceLocation;
 public class RenderSilverfishMinion extends RenderLiving
 {
     private static final ResourceLocation silverfishTextures = new ResourceLocation("textures/entity/silverfish.png");
-    private static final String __OBFID = "CL_00001022";
 
     public RenderSilverfishMinion()
     {

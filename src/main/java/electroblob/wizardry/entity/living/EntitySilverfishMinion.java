@@ -27,8 +27,6 @@ public class EntitySilverfishMinion extends EntitySummonedCreature
 {
 	/** A cooldown before this entity will search for another Silverfish to join them in battle. */
 	private int allySummonCooldown;
-	private static final String __OBFID = "CL_00001696";
-
 	public EntitySilverfishMinion(World world){
 		super(world);
 	}

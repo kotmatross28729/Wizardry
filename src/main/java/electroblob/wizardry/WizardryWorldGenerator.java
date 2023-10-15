@@ -21,16 +21,17 @@ import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.IPlantable;
+import net.minecraft.world.WorldType;
 
 public class WizardryWorldGenerator implements IWorldGenerator {
-	
+
 	/** The string identifier for wizard tower chests, used in ChestGenHooks. */
 	public static final String WIZARD_TOWER = Wizardry.MODID + "wizardTower";
 
 	@Override
 	public void generate(Random random, int chunkX, int chunkZ, World world,
 			IChunkProvider chunkGenerator, IChunkProvider chunkProvider) {
-
+        if (world.getWorldInfo().getTerrainType() != WorldType.FLAT) {
 		for(int id : Wizardry.oreDimensions){
 			if(id == world.provider.dimensionId) this.addOreSpawn(Wizardry.crystalOre, world, random, chunkX * 16, chunkZ * 16, 16, 16, 5, 7, 5, 30);
 		}
@@ -44,6 +45,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 				if(id == world.provider.dimensionId) this.generateWizardTower(world, random, chunkX * 16, chunkZ * 16);
 			}
 		}
+        }
 	}
 
 	/**
@@ -102,7 +104,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 				int k1 = randPosZ + random.nextInt(8) - random.nextInt(8);
 
 				if(world.blockExists(i1, j1, k1) && world.isAirBlock(i1, j1, k1) && (!world.provider.hasNoSky || j1 < 127) && block.canBlockStay(world, i1, j1, k1)){
-					
+
 					world.setBlock(i1, j1, k1, block, 0, 2);
 				}
 			}
@@ -116,36 +118,35 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 
 		// Allows the config file to set the rarity value to 0 to disable tower generation completely.
 		if(Wizardry.towerRarity == 0) return;
-		
+
 		// Compensates for the lack of space in forests. Math.max is required since treeless biomes have treesPerChunk = -999
 		//double treeFactor = 70 - Math.max((double)world.getBiomeGenForCoords(chunkX, chunkZ).theBiomeDecorator.treesPerChunk, 0) * 1.5d;
 
 		// Multiplied by 70 to (roughly) retain the old rarity scale
-		if(random.nextInt((int)(Wizardry.towerRarity * 70)) == 0){
+		if(random.nextInt(Wizardry.towerRarity * 70) == 0){
 
 			int posX = chunkX + random.nextInt(16);
 			int posZ = chunkZ + random.nextInt(16);
-			
+
 			// Despite what its name suggests, this method does not return the position of a liquid. It is in fact
 			// exactly what is needed here since it is used for placing villages and stuff, and doesn't include leaves
 			// or other foliage.
 			int posY = world.getTopSolidOrLiquidBlock(posX, posZ) - 1;
-			
-			int[][][] towerBlueprint = towerBlueprintSmall;
-			
-			switch(random.nextInt(4)){
-			case 0: towerBlueprint = towerBlueprintSmall; break;
-			case 1: towerBlueprint = towerBlueprintMedium; break;
-			case 2: towerBlueprint = towerBlueprintTall; break;
-			case 3: towerBlueprint = towerBlueprintDouble; break;
-			}
-		
-			// 0 = West, 1 = North, 2 = East, 3 = South (The way you would face when walking out of the door)
+
+			int[][][] towerBlueprint = switch (random.nextInt(4)) {
+                case 0 -> towerBlueprintSmall;
+                case 1 -> towerBlueprintMedium;
+                case 2 -> towerBlueprintTall;
+                case 3 -> towerBlueprintDouble;
+                default -> towerBlueprintSmall;
+            };
+
+            // 0 = West, 1 = North, 2 = East, 3 = South (The way you would face when walking out of the door)
 			int orientation = random.nextInt(4);
 			boolean flip = random.nextBoolean();
 
 			/* It seems there is something specific about sand which makes it very unlikely (but NOT impossible) for
-			 * the towers to generate on it... 
+			 * the towers to generate on it...
 			 * Edit: The culprit was canBlockSeeTheSky, so I've taken that out and replaced it with getTopSolidOrLiquidBlock
 			 * (which also greatly increases the efficiency of the generator since it doesn't even try underground blocks).
 			 * In addition, I have added a check for solid blocks in the way of the tower; see checkForSpace. */
@@ -160,11 +161,11 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 			// These conditions are no longer necessary thanks to world.getTopSolidOrLiquidBlock
 			//if((world.canBlockSeeTheSky(posX, posY, posZ) || world.getBlock(posX, posY, posZ) == Blocks.grass) &&
 			//if(!world.isAirBlock(posX, posY, posZ) && world.isBlockNormalCubeDefault(posX, posY, posZ, false) &&
-			
+
 			if(checkSpaceForTower(world, posX, posY, posZ, towerBlueprint, orientation, flip)){
 
 				boolean evilWizard = random.nextInt(5) == 0;
-				
+
 				Block wallMaterial = Blocks.cobblestone;
 				int woodType = 0;
 				BiomeGenBase biome = world.getBiomeGenForCoords(posX, posZ);
@@ -201,88 +202,48 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 						Blocks.torch,
 						evilWizard ? Blocks.chest : Blocks.bookshelf
 				};
-				
+
 				int[] metadataList = new int[]{0, 0, woodType, 0, random.nextInt(15), woodType, woodType + 8, 0, 0, 0, 0, 0, 0};
 
-				List<int[]> blocksPlaced = new ArrayList<int[]>();
-				
+				List<int[]> blocksPlaced = new ArrayList<>();
+
 				// Fills in foundations. This is done first so the door always has something to be placed on.
 				boolean flag = true;
 				int y1 = 0;
 
-				while(flag){
-					flag = false;
-					if(!world.isBlockNormalCubeDefault(posX - 2, posY + y1, posZ - 1, false)){
-						world.setBlock(posX - 2, posY + y1, posZ - 1, wallMaterial);
-						blocksPlaced.add(new int[]{posX - 2, posY + y1, posZ - 1});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX - 2, posY + y1, posZ, false)){
-						world.setBlock(posX - 2, posY + y1, posZ, wallMaterial);
-						blocksPlaced.add(new int[]{posX - 2, posY + y1, posZ});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX - 2, posY + y1, posZ + 1, false)){
-						world.setBlock(posX - 2, posY + y1, posZ + 1, wallMaterial);
-						blocksPlaced.add(new int[]{posX - 2, posY + y1, posZ + 1});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX + 2, posY + y1, posZ - 1, false)){
-						world.setBlock(posX + 2, posY + y1, posZ - 1, wallMaterial);
-						blocksPlaced.add(new int[]{posX + 2, posY + y1, posZ - 1});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX + 2, posY + y1, posZ, false)){
-						world.setBlock(posX + 2, posY + y1, posZ, wallMaterial);
-						blocksPlaced.add(new int[]{posX + 2, posY + y1, posZ});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX + 2, posY + y1, posZ + 1, false)){
-						world.setBlock(posX + 2, posY + y1, posZ + 1, wallMaterial);
-						blocksPlaced.add(new int[]{posX + 2, posY + y1, posZ + 1});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX - 1, posY + y1, posZ - 2, false)){
-						world.setBlock(posX - 1, posY + y1, posZ - 2, wallMaterial);
-						blocksPlaced.add(new int[]{posX - 1, posY + y1, posZ - 2});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX, posY + y1, posZ - 2, false)){
-						world.setBlock(posX, posY + y1, posZ - 2, wallMaterial);
-						blocksPlaced.add(new int[]{posX, posY + y1, posZ - 2});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX + 1, posY + y1, posZ - 2, false)){
-						world.setBlock(posX + 1, posY + y1, posZ - 2, wallMaterial);
-						blocksPlaced.add(new int[]{posX + 1, posY + y1, posZ - 2});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX - 1, posY + y1, posZ + 2, false)){
-						world.setBlock(posX - 1, posY + y1, posZ + 2, wallMaterial);
-						blocksPlaced.add(new int[]{posX - 1, posY + y1, posZ + 2});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX, posY + y1, posZ + 2, false)){
-						world.setBlock(posX, posY + y1, posZ + 2, wallMaterial);
-						blocksPlaced.add(new int[]{posX, posY + y1, posZ + 2});
-						flag = true;
-					}
-					if(!world.isBlockNormalCubeDefault(posX + 1, posY + y1, posZ + 2, false)){
-						world.setBlock(posX + 1, posY + y1, posZ + 2, wallMaterial);
-						blocksPlaced.add(new int[]{posX + 1, posY + y1, posZ + 2});
-						flag = true;
-					}
-					y1--;
-				}
+                while (flag) {
+                    flag = false;
+                    int[] offsets = {-2, -1, 0, 1, 2};
 
-				// It is assumed that the width of the blueprint is the same all the way up, and that the layers are square.
+                    for (int xOffset : offsets) {
+                        for (int zOffset : offsets) {
+                            if (xOffset == 0 && zOffset == 0) {
+                                continue;  // Ignore the center position
+                            }
+
+                            int checkX = posX + xOffset;
+                            int checkY = posY + y1;
+                            int checkZ = posZ + zOffset;
+
+                            if (!world.isBlockNormalCubeDefault(checkX, checkY, checkZ, false)) {
+                                world.setBlock(checkX, checkY, checkZ, wallMaterial);
+                                blocksPlaced.add(new int[]{checkX, checkY, checkZ});
+                                flag = true;
+                            }
+                        }
+                    }
+
+                    y1--;
+                }
+
+                // It is assumed that the width of the blueprint is the same all the way up, and that the layers are square.
 				int width = towerBlueprint[0].length-1;
 
 				// x, y and z are the position the block is being put in.
 				// x1, y and z1 are the position in the blueprint which determines which block is being placed.
-				
+
 				int x1 = 0, z1 = 0;
-				
+
 				// Main structure
 				for(int y=0; y<towerBlueprint.length; y++){
 					for(int z=0; z<towerBlueprint[y].length; z++){
@@ -353,7 +314,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 							if(blockList[towerBlueprint[y][z1][x1]] == Blocks.torch || blockList[towerBlueprint[y][z1][x1]] == Blocks.chest){
 								world.setBlock(posX + x - width/2, posY + y, posZ + z - width/2, blockList[towerBlueprint[y][z1][x1]]);
 								blocksPlaced.add(new int[]{posX + x - width/2, posY + y, posZ + z - width/2});
-								
+
 								if(blockList[towerBlueprint[y][z1][x1]] == Blocks.chest){
 									WeightedRandomChestContent.generateChestContents(random, ChestGenHooks.getItems(WIZARD_TOWER, random), (IInventory) world.getTileEntity(posX + x - width/2, posY + y, posZ + z - width/2), ChestGenHooks.getCount(WIZARD_TOWER, random));
 								}
@@ -370,9 +331,9 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 					wizard.onSpawnWithEgg(null);
 
 					world.spawnEntityInWorld(wizard);
-					
+
 				}else{
-					
+
 					EntityWizard wizard = new EntityWizard(world);
 					wizard.setLocationAndAngles(posX + 1.5, posY + towerBlueprint.length - 9.5, posZ + 1.5, 0, 0);
 					wizard.onSpawnWithEgg(null);
@@ -385,10 +346,10 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 
 					world.spawnEntityInWorld(wizard);
 				}
-			}
+            }
 		}
 	}
-	
+
 	/**
 	 * Checks whether a tower generated at the given coordinates will intersect any solid or liquid blocks. Only tests for
 	 * liquids (not solid blocks) for the first four layers to account for the floor and for sloping terrain.
@@ -396,15 +357,15 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 	 * lava count, as do logs, but leaves and plants don't.
 	 */
 	private static boolean checkSpaceForTower(World world, int posX, int posY, int posZ, int[][][] towerBlueprint, int orientation, boolean flip){
-		
+
 		// x, y and z are the position the block is being put in.
 		// x1, y and z1 are the position in the blueprint which determines which block is being placed.
-		
+
 		int x1 = 0, z1 = 0;
-		
+
 		// It is assumed that the width of the blueprint is the same all the way up, and that the layers are square.
 		int width = towerBlueprint[0].length-1;
-		
+
 		for(int y=0; y<towerBlueprint.length; y++){
 			for(int z=0; z<towerBlueprint[y].length; z++){
 				for(int x=0; x<towerBlueprint[y][z].length; x++){
@@ -437,7 +398,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 				}
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -643,7 +604,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 				{0, 0, 0, 0, 0, 0, 0, 0, 0},
 			}
 	};
-	
+
 	/**
 	 * 3D matrix of integers representing the different blocks which make up the wizard tower. The blocks corresponding
 	 * to each integer are as follows (note that some blocks change depending on the biome):
@@ -886,7 +847,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 				{0, 0, 0, 0, 0, 0, 0, 0, 0},
 			}
 	};
-	
+
 	/**
 	 * 3D matrix of integers representing the different blocks which make up the wizard tower. The blocks corresponding
 	 * to each integer are as follows (note that some blocks change depending on the biome):
@@ -1500,6 +1461,6 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 				{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 			}
 	};
-	
-	
+
+
 }
