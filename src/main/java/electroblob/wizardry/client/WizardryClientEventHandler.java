@@ -119,9 +119,9 @@ public class WizardryClientEventHandler {
 		}
 	}
 
-	@SubscribeEvent
-	public void onRenderLivingEvent(RenderLivingEvent.Post event){
-		/*
+    @SubscribeEvent
+    public void onRenderLivingEvent(RenderLivingEvent.Post event) {
+        		/*
 		// Frost effect
 		if(event.entity.isPotionActive(Wizardry.frost)){
 
@@ -133,15 +133,15 @@ public class WizardryClientEventHandler {
 			float someScalingFactor = 0.0625f;
 
 			float yaw = event.entity.prevRotationYaw;
-			
+
 			//int brightness = event.entity.getBrightnessForRender(0);
 
 			//int j = brightness % 65536;
 			//int k = brightness / 65536;
 			//OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
 			//GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			
-			
+
+
 			GL11.glTranslated(event.x, event.y, event.z);
 
 			GL11.glRotatef(-yaw + 180, 0F, 1F, 0F);
@@ -153,9 +153,9 @@ public class WizardryClientEventHandler {
 			// Reflection
 
 			try {
-				
+
 				Timer timer = ReflectionHelper.getPrivateValue(Minecraft.class, Minecraft.getMinecraft(), "timer");
-				
+
 				// Chooses the appropriate zombie model, normal or villager
 				// Fixed by moving before the model fields are accessed
 				if(render instanceof RenderZombie && event.entity instanceof EntityZombie){
@@ -163,11 +163,11 @@ public class WizardryClientEventHandler {
 					ReflectionHelper.findMethod(RenderZombie.class, (RenderZombie)render, new String[]{"func_82427_a"}, EntityZombie.class)
 					.invoke(renderliving, (EntityZombie)event.entity);
 				}
-				
+
 				// Turns out that java automatically infers the type parameter T in this method from the type
 				// I am assigning the returned value to. Neat!
 				ModelBase mainModel = ReflectionHelper.getPrivateValue(RendererLivingEntity.class, renderliving, "mainModel");
-				
+
 				mainModel.isRiding = event.entity.isRiding();
 				mainModel.isChild = event.entity.isChild();
 
@@ -180,7 +180,7 @@ public class WizardryClientEventHandler {
 
 				// Why is this -1.5f? No idea!
 				GL11.glTranslatef(0, -1.5f, 0);
-				
+
 				float f6 = event.entity.prevLimbSwingAmount + (event.entity.limbSwingAmount - event.entity.prevLimbSwingAmount) * timer.renderPartialTicks;
 	            float f7 = event.entity.limbSwing - event.entity.limbSwingAmount * (1.0F - timer.renderPartialTicks);
 
@@ -193,7 +193,7 @@ public class WizardryClientEventHandler {
 	            {
 	                f6 = 1.0F;
 	            }
-	            
+
 	            mainModel.setLivingAnimations(event.entity, f7, f6, timer.renderPartialTicks);
 
 				GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -217,138 +217,53 @@ public class WizardryClientEventHandler {
 			GL11.glPopMatrix();
 		}
 		*/
-		
-		Minecraft mc = Minecraft.getMinecraft();
-		ExtendedPlayer properties = ExtendedPlayer.get(mc.thePlayer);
-		MovingObjectPosition rayTrace = WizardryUtilities.standardEntityRayTrace(mc.theWorld, mc.thePlayer, 16);
-		
-		// Target selection pointer
-		if(mc.thePlayer.isSneaking() && mc.thePlayer.getHeldItem() != null
-				&& mc.thePlayer.getHeldItem().getItem() instanceof ItemWand && rayTrace != null
-				&& rayTrace.entityHit instanceof EntityLivingBase && rayTrace.entityHit == event.entity
-				&& properties != null && properties.selectedMinion != null){
-			
-			Tessellator tessellator = Tessellator.instance;
+        Minecraft mc = Minecraft.getMinecraft();
+        ExtendedPlayer properties = ExtendedPlayer.get(mc.thePlayer);
+        MovingObjectPosition rayTrace = WizardryUtilities.standardEntityRayTrace(mc.theWorld, mc.thePlayer, 16);
 
-			GL11.glPushMatrix();
+        if (properties != null && properties.selectedMinion != null) {
+            Tessellator tessellator = Tessellator.instance;
+            GL11.glPushMatrix();
 
-			GL11.glDisable(GL11.GL_CULL_FACE);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
-			// Disabling depth test allows it to be seen through everything.
-			GL11.glDisable(GL11.GL_DEPTH_TEST);
-			GL11.glColor4f(1, 1, 1, 1);
+            GL11.glDisable(GL11.GL_CULL_FACE);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glColor4f(1, 1, 1, 1);
 
-			GL11.glTranslated(event.x, event.y + event.entity.height + 0.5, event.z);
+            GL11.glTranslated(event.x, event.y + event.entity.height + 0.5, event.z);
+            float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
+            GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
 
-			// This counteracts the reverse rotation behaviour when in front f5 view.
-			// Fun fact: this is a bug with vanilla too! Look at a snowball in front f5 view, for example.
-			float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
-			GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
-			GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
+            tessellator.startDrawingQuads();
 
-			tessellator.startDrawingQuads();
+            if (mc.thePlayer.isSneaking() && mc.thePlayer.getHeldItem() != null
+                && mc.thePlayer.getHeldItem().getItem() instanceof ItemWand && rayTrace != null
+                && rayTrace.entityHit instanceof EntityLivingBase && rayTrace.entityHit == event.entity) {
+                mc.renderEngine.bindTexture(targetPointerTexture);
+            } else if (properties.selectedMinion.get() == event.entity) {
+                mc.renderEngine.bindTexture(pointerTexture);
+            } else if (mc.thePlayer.isPotionActive(Wizardry.sixthSense) && event.entity != mc.thePlayer
+                && mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense) != null
+                && event.entity.getDistanceToEntity(mc.thePlayer) < 20 * (1 + mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense).getAmplifier() * Wizardry.RANGE_INCREASE_PER_LEVEL)) {
+                mc.renderEngine.bindTexture(sixthSenseTexture);
+            }
 
-			mc.renderEngine.bindTexture(targetPointerTexture);
+            tessellator.addVertexWithUV(-0.2, 0.24, 0, 0, 0);
+            tessellator.addVertexWithUV(0.2, 0.24, 0, 9f / 16f, 0);
+            tessellator.addVertexWithUV(0.2, -0.24, 0, 9f / 16f, 11f / 16f);
+            tessellator.addVertexWithUV(-0.2, -0.24, 0, 0, 11f / 16f);
 
-			tessellator.addVertexWithUV(-0.2, 0.24, 0, 0, 0);
-			tessellator.addVertexWithUV(0.2, 0.24, 0, 9f/16f, 0);
-			tessellator.addVertexWithUV(0.2, -0.24, 0, 9f/16f, 11f/16f);
-			tessellator.addVertexWithUV(-0.2, -0.24, 0, 0, 11f/16f);
+            tessellator.draw();
 
-			tessellator.draw();
+            GL11.glEnable(GL11.GL_CULL_FACE);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
 
-			GL11.glEnable(GL11.GL_CULL_FACE);
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-			GL11.glPopMatrix();
-		}
-
-		// Summoned creature selection pointer
-		if(properties != null && properties.selectedMinion != null && properties.selectedMinion.get() == event.entity){
-			
-			Tessellator tessellator = Tessellator.instance;
-
-			GL11.glPushMatrix();
-
-			GL11.glDisable(GL11.GL_CULL_FACE);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
-			// Disabling depth test allows it to be seen through everything.
-			GL11.glDisable(GL11.GL_DEPTH_TEST);
-			GL11.glColor4f(1, 1, 1, 1);
-
-			GL11.glTranslated(event.x, event.y + event.entity.height + 0.5, event.z);
-
-			// This counteracts the reverse rotation behaviour when in front f5 view.
-			// Fun fact: this is a bug with vanilla too! Look at a snowball in front f5 view, for example.
-			float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
-			GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
-			GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
-
-			tessellator.startDrawingQuads();
-
-			mc.renderEngine.bindTexture(pointerTexture);
-
-			tessellator.addVertexWithUV(-0.2, 0.24, 0, 0, 0);
-			tessellator.addVertexWithUV(0.2, 0.24, 0, 9f/16f, 0);
-			tessellator.addVertexWithUV(0.2, -0.24, 0, 9f/16f, 11f/16f);
-			tessellator.addVertexWithUV(-0.2, -0.24, 0, 0, 11f/16f);
-
-			tessellator.draw();
-
-			GL11.glEnable(GL11.GL_CULL_FACE);
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-			GL11.glPopMatrix();
-		}
-		
-		// Sixth sense
-		if(mc.thePlayer.isPotionActive(Wizardry.sixthSense) && event.entity != mc.thePlayer
-				&& mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense) != null
-				&& event.entity.getDistanceToEntity(mc.thePlayer) < 20*(1+mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense).getAmplifier()*Wizardry.RANGE_INCREASE_PER_LEVEL)){
-
-			Tessellator tessellator = Tessellator.instance;
-
-			GL11.glPushMatrix();
-
-			GL11.glDisable(GL11.GL_CULL_FACE);
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			// Disabling depth test allows it to be seen through everything.
-			GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-			GL11.glTranslated(event.x, event.y + event.entity.height * 0.6, event.z);
-
-			// This counteracts the reverse rotation behaviour when in front f5 view.
-			// Fun fact: this is a bug with vanilla too! Look at a snowball in front f5 view, for example.
-			float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
-			GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
-			GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
-
-			tessellator.startDrawingQuads();
-
-			mc.renderEngine.bindTexture(sixthSenseTexture);
-
-			tessellator.addVertexWithUV(-0.6, 0.6, 0, 0, 0);
-			tessellator.addVertexWithUV(0.6, 0.6, 0, 1, 0);
-			tessellator.addVertexWithUV(0.6, -0.6, 0, 1, 1);
-			tessellator.addVertexWithUV(-0.6, -0.6, 0, 0, 1);
-
-			tessellator.draw();
-
-			GL11.glEnable(GL11.GL_CULL_FACE);
-			GL11.glDisable(GL11.GL_BLEND);
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glEnable(GL11.GL_DEPTH_TEST);
-
-			GL11.glPopMatrix();
-		}
-	}
+            GL11.glPopMatrix();
+        }
+    }
 
 	@SubscribeEvent
 	public void onRenderGameOverlayEvent(RenderGameOverlayEvent.Post event){
