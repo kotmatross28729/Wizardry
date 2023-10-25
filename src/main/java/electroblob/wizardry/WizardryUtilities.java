@@ -1,9 +1,6 @@
 package electroblob.wizardry;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import cpw.mods.fml.common.registry.EntityRegistry;
 import electroblob.wizardry.entity.living.EntitySummonedCreature;
@@ -120,7 +117,7 @@ public final class WizardryUtilities {
 		}
 		return yCoord + 1;
 	}
-	
+
 	/**
 	 * Finds the nearest floor level to the given y coord within the range specified at the given x and z coords.
 	 * Everything that is not air is treated as floor, even stuff that can't be walked on.
@@ -232,7 +229,7 @@ public final class WizardryUtilities {
 	/**
 	 * Helper method which does a rayTrace for entities from an entity's eye level in the direction they are looking
 	 * with a specified range, using the tracePath method. Tidies up the code a bit. Border size defaults to 1.
-	 * 
+	 *
 	 * @param world
 	 * @param entity
 	 * @param range
@@ -250,7 +247,7 @@ public final class WizardryUtilities {
 	/**
 	 * Helper method which does a rayTrace for entities from a entity's eye level in the direction they are looking
 	 * with a specified range and radius, using the tracePath method. Tidies up the code a bit.
-	 * 
+	 *
 	 * @param world
 	 * @param entity
 	 * @param range
@@ -269,7 +266,7 @@ public final class WizardryUtilities {
 	/**
 	 * Method for ray tracing entities (the useless default method doesn't work, despite EnumHitType having an ENTITY field...)
 	 * You can also use this for seeking.
-	 * 
+	 *
 	 * @param world
 	 * @param x startX
 	 * @param y startY
@@ -281,60 +278,49 @@ public final class WizardryUtilities {
 	 * @param excluded any excluded entities (the player, etc)
 	 * @return a MovingObjectPosition of either the block hit (no entity hit), the entity hit (hit an entity), or null for nothing hit
 	 */
-	public static MovingObjectPosition tracePath(World world, float x, float y, float z, float tx, float ty, float tz, float borderSize, HashSet<Entity> excluded, boolean collideablesOnly){
+    public static MovingObjectPosition tracePath(World world, float x, float y, float z, float tx, float ty, float tz, float borderSize, HashSet<Entity> excluded, boolean collideablesOnly) {
+        Vec3 startVec = Vec3.createVectorHelper(x, y, z);
+        Vec3 endVec = Vec3.createVectorHelper(tx, ty, tz);
 
-		Vec3 startVec = Vec3.createVectorHelper(x, y, z);
-		Vec3 lookVec = Vec3.createVectorHelper(tx-x, ty-y, tz-z);
-		Vec3 endVec = Vec3.createVectorHelper(tx, ty, tz);
-		float minX = x < tx ? x : tx;
-		float minY = y < ty ? y : ty;
-		float minZ = z < tz ? z : tz;
-		float maxX = x > tx ? x : tx;
-		float maxY = y > ty ? y : ty; 
-		float maxZ = z > tz ? z : tz;
-		AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(minX, minY, minZ, maxX, maxY, maxZ).expand(borderSize, borderSize, borderSize);
-		List<Entity> allEntities = world.getEntitiesWithinAABBExcludingEntity(null, bb);  
-		MovingObjectPosition blockHit = world.rayTraceBlocks(startVec, endVec);
-		startVec = Vec3.createVectorHelper(x, y, z);
-		endVec = Vec3.createVectorHelper(tx, ty, tz);
-		float maxDistance = (float) endVec.distanceTo(startVec);
-		if(blockHit!=null)
-		{
-			maxDistance = (float) blockHit.hitVec.distanceTo(startVec);
-		}  
-		Entity closestHitEntity = null;
-		float closestHit = maxDistance;
-		float currentHit = 0.f;
-		AxisAlignedBB entityBb;// = ent.getBoundingBox();
-		MovingObjectPosition intercept;
-		for(Entity ent : allEntities)
-		{    
-			if((ent.canBeCollidedWith() || !collideablesOnly) && ((excluded != null && !excluded.contains(ent)) || excluded == null))
-			{
-				float entBorder =  ent.getCollisionBorderSize();
-				entityBb = ent.boundingBox;
-				if(entityBb!=null)
-				{
-					entityBb = entityBb.expand(entBorder, entBorder, entBorder);
-					intercept = entityBb.calculateIntercept(startVec, endVec);
-					if(intercept!=null)
-					{
-						currentHit = (float) intercept.hitVec.distanceTo(startVec);
-						if(currentHit < closestHit || currentHit==0)
-						{            
-							closestHit = currentHit;
-							closestHitEntity = ent;
-						}
-					} 
-				}
-			}
-		}  
-		if(closestHitEntity!=null)
-		{
-			blockHit = new MovingObjectPosition(closestHitEntity);
-		}
-		return blockHit;
-	}
+        AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
+            Math.min(x, tx), Math.min(y, ty), Math.min(z, tz),
+            Math.max(x, tx), Math.max(y, ty), Math.max(z, tz)
+        ).expand(borderSize, borderSize, borderSize);
+
+        List<Entity> allEntities = world.getEntitiesWithinAABBExcludingEntity(null, bb);
+        MovingObjectPosition blockHit = world.rayTraceBlocks(startVec, endVec);
+
+        if (blockHit != null) {
+            return blockHit;
+        }
+
+        Entity closestHitEntity = null;
+        float closestHit = Float.MAX_VALUE;
+
+        for (Entity ent : allEntities) {
+            if ((ent.canBeCollidedWith() || !collideablesOnly) && (excluded == null || !excluded.contains(ent))) {
+                AxisAlignedBB entityBb = ent.boundingBox;
+                if (entityBb != null) {
+                    float entBorder = ent.getCollisionBorderSize();
+                    entityBb = entityBb.expand(entBorder, entBorder, entBorder);
+                    MovingObjectPosition intercept = entityBb.calculateIntercept(startVec, endVec);
+                    if (intercept != null) {
+                        float currentHit = (float) intercept.hitVec.distanceTo(startVec);
+                        if (currentHit < closestHit || closestHitEntity == null) {
+                            closestHit = currentHit;
+                            closestHitEntity = ent;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (closestHitEntity != null) {
+            return new MovingObjectPosition(closestHitEntity);
+        }
+
+        return blockHit;
+    }
 
 	// Just what benefit does having posY be the eye position on the first person client actually give?
 
@@ -365,7 +351,7 @@ public final class WizardryUtilities {
 			return entity.posY;
 		}
 	}
-	
+
 	/**
 	 * Verifies that the given string is a valid string representation of a UUID. More specifically, returns true if and
 	 * only if the given string is not null and matches the regular expression:<p>
@@ -397,10 +383,10 @@ public final class WizardryUtilities {
 	 * Also note that the friendly fire option is dealt with
 	 * in the event handler. This method acts as a sort of wrapper for all the ADS stuff in {@link ExtendedPlayer}; more
 	 * details about the ally designation system can be found there.
-	 * 
+	 *
 	 * @param attacker The entity that cast the spell originally
 	 * @param target The entity being attacked
-	 * 
+	 *
 	 * @return False under any of the following circumstances, true otherwise:
 	 * <p>
 	 * - The target is the attacker (this isn't as stupid as it sounds - anything with an AoE might cause this to be
@@ -414,7 +400,7 @@ public final class WizardryUtilities {
 	public static boolean isValidTarget(Entity attacker, Entity target){
 
 		// Don't need to check if either entity is null since instanceof does this anyway.
-		
+
 		// Tests whether the target is the attacker
 		if(target == attacker) return false;
 
@@ -434,7 +420,7 @@ public final class WizardryUtilities {
 				}
 			}
 		}
-		
+
 		// Ally section
 		if(attacker instanceof EntityPlayer && ExtendedPlayer.get((EntityPlayer)attacker) != null){
 
@@ -450,15 +436,15 @@ public final class WizardryUtilities {
 						&& ExtendedPlayer.get((EntityPlayer)attacker).isPlayerAlly((EntityPlayer)((EntitySummonedCreature)target).getCaster())){
 					return false;
 				}
-				
+
 			}else if(target instanceof EntityLiving && ((EntityLivingBase)target).isPotionActive(Wizardry.mindControl)){
 				// Tests whether the target is a creature that was mind controlled by an ally of the attacker
 				NBTTagCompound entityNBT = target.getEntityData();
-				
+
 				if(entityNBT != null && entityNBT.hasKey(MindControl.NBT_KEY)){
-					
+
 					Entity controller = WizardryUtilities.getEntityByUUID(target.worldObj, UUID.fromString(entityNBT.getString(MindControl.NBT_KEY)));
-					
+
 					if(controller instanceof EntityPlayer && ExtendedPlayer.get((EntityPlayer)attacker).isPlayerAlly((EntityPlayer)controller)){
 						return false;
 					}
@@ -494,7 +480,7 @@ public final class WizardryUtilities {
 	 * <p>
 	 * For reference, the standard weighting is as follows:
 	 * Basic: 60%, Apprentice: 25%, Advanced: 10%, Master: 5%
-	 * 
+	 *
 	 * @param random An instance of the Random class
 	 * @param nonContinuous Whether the spells must be non-continuous (used for scrolls)
 	 * @return A random spell id number
