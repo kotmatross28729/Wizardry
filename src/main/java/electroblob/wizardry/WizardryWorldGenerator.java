@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.IWorldGenerator;
 import electroblob.wizardry.entity.living.EntityEvilWizard;
 import electroblob.wizardry.entity.living.EntityWizard;
@@ -22,6 +23,7 @@ import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.ChestGenHooks;
 import net.minecraftforge.common.IPlantable;
 import net.minecraft.world.WorldType;
+import org.apache.logging.log4j.Level;
 
 public class WizardryWorldGenerator implements IWorldGenerator {
 
@@ -37,7 +39,7 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 		}
 
 		for(int id : Wizardry.flowerDimensions){
-			if(id == world.provider.dimensionId) this.generatePlant(Wizardry.crystalFlower, world, random, chunkX * 16, chunkZ * 16, 2, 20);
+			if(id == world.provider.dimensionId) this.generatePlant(Wizardry.crystalFlower, world, chunkX * 16, chunkZ * 16, 2,10,10);
 		}
 
 		if(world.getWorldInfo().isMapFeaturesEnabled()){
@@ -86,30 +88,34 @@ public class WizardryWorldGenerator implements IWorldGenerator {
 	 * Generates the specified plant randomly throughout the world.
 	 * @param block The plant block
 	 * @param world The world
-	 * @param random A random instance
 	 * @param x The x coord of the first block in the chunk
 	 * @param z The y coord of the first block in the chunk
 	 * @param chancesToSpawn Number of chances to spawn a flower patch
-	 * @param groupSize The number of times to try generating a flower per flower patch spawn
 	 */
-	public void generatePlant(Block block, World world, Random random, int x, int z, int chancesToSpawn, int groupSize){
-		for(int i = 0; i < chancesToSpawn; i++){
-			int randPosX = x + random.nextInt(16);
-			int randPosY = random.nextInt(256);
-			int randPosZ = z + random.nextInt(16);
-			for (int l = 0; l < groupSize; ++l)
-			{
-				int i1 = randPosX + random.nextInt(8) - random.nextInt(8);
-				int j1 = randPosY + random.nextInt(4) - random.nextInt(4);
-				int k1 = randPosZ + random.nextInt(8) - random.nextInt(8);
 
-				if(world.blockExists(i1, j1, k1) && world.isAirBlock(i1, j1, k1) && (!world.provider.hasNoSky || j1 < 127) && block.canBlockStay(world, i1, j1, k1)){
+    public void generatePlant(Block block, World world, int x, int z, int chancesToSpawn, int distanceFactor, int spawnChance) {
+        Random rand = new Random();
 
-					world.setBlock(i1, j1, k1, block, 0, 2);
-				}
-			}
-		}
-	}
+        for (int i = 0; i < chancesToSpawn; i++) {
+            if (rand.nextInt(100) < spawnChance) {
+                int i1 = x + i * distanceFactor;
+                int j1 = world.getHeightValue(i1, z);
+                int k1 = z + i * distanceFactor;
+
+                Block blockBelow = world.getBlock(i1, j1 - 1, k1);
+
+                if (blockBelow == Blocks.grass && world.isAirBlock(i1, j1, k1) && block.canPlaceBlockAt(world, i1, j1, k1)) {
+                    world.setBlock(i1, j1, k1, block, 0, 2);
+
+                    int checkY = j1 + 1;
+                    while (checkY < world.getHeight() && !world.isAirBlock(i1, checkY, k1)) {
+                        world.setBlockToAir(i1, checkY, k1);
+                        checkY++;
+                    }
+                }
+            }
+        }
+    }
 
 	/**
 	 * Generates wizard towers randomly throughout the world.
