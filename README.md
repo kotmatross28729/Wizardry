@@ -29,3 +29,6 @@ Discord server : https://discord.gg/ZnmHKJzKkZ
 -optimize WizardryClientEventHandler fps performances
 
 -Update WizardryUtilities
+
+-MERGE PR https://github.com/quentin452/Wizardry/pull/2
+(Fixed a common crash when switching spells)
