@@ -38,90 +38,90 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
  * @since Wizardry 1.0 */
 public class WizardryClientEventHandler {
 
-	private static final ResourceLocation shieldTexture = new ResourceLocation("wizardry:textures/entity/shield.png");
-	private static final ResourceLocation wingTexture = new ResourceLocation("wizardry:textures/entity/wing.png");
-	private static final ResourceLocation shadowWardTexture = new ResourceLocation("wizardry:textures/entity/shadow_ward.png");
-	private static final ResourceLocation sixthSenseTexture = new ResourceLocation("wizardry:textures/entity/sixth_sense.png");
-	private static final ResourceLocation sixthSenseOverlayTexture = new ResourceLocation("wizardry:textures/gui/sixth_sense_overlay.png");
-	private static final ResourceLocation frostOverlayTexture = new ResourceLocation("wizardry:textures/gui/frost_overlay.png");
-	private static final ResourceLocation pointerTexture = new ResourceLocation("wizardry:textures/entity/pointer.png");
-	private static final ResourceLocation targetPointerTexture = new ResourceLocation("wizardry:textures/entity/target_pointer.png");
-
-	@SubscribeEvent
-	public void onRenderPlayerArmourEvent(RenderPlayerEvent.SetArmorModel event){
-
-		ItemStack stack = event.entityPlayer.inventory.armorInventory[event.slot];
-
-		if(stack != null && stack.getItem() instanceof ItemSpectralArmour){
-			GL11.glEnable(GL11.GL_BLEND);
-		}
-	}
-
-	// Shift-scrolling to change spells
-	@SubscribeEvent
-	public void onMouseEvent(MouseEvent event){
-		if(Minecraft.getMinecraft().inGameHasFocus && Minecraft.getMinecraft().thePlayer.getHeldItem() != null
-				&& Minecraft.getMinecraft().thePlayer.getHeldItem().getItem() instanceof ItemWand && event.dwheel != 0
-				&& Minecraft.getMinecraft().thePlayer.isSneaking() && Wizardry.enableShiftScrolling){
-
-			event.setCanceled(true);
-
-			if(event.dwheel > 0){
-				// Packet building
-				IMessage msg = new PacketControlInput.Message(2);
-				WizardryPacketHandler.net.sendToServer(msg);
-
-			}else if(event.dwheel < 0){
-				// Packet building
-				IMessage msg = new PacketControlInput.Message(1);
-				WizardryPacketHandler.net.sendToServer(msg);
-			}
-		}
-	}
-
-	@SubscribeEvent
-	public void onFOVUpdateEvent(FOVUpdateEvent event){
-
-		// Bow zoom. Taken directly from EntityPlayerSP so it works exactly like vanilla.
-		if (event.entity.isUsingItem() && event.entity.getItemInUse().getItem() instanceof ItemSpectralBow)
-		{
-			int i = event.entity.getItemInUseDuration();
-			float f1 = (float)i / 20.0F;
-
-			if (f1 > 1.0F)
-			{
-				f1 = 1.0F;
-			}
-			else
-			{
-				f1 *= f1;
-			}
-
-			event.newfov *= 1.0F - f1 * 0.15F;
-		}
-	}
-
-	// Third person
-	@SubscribeEvent
-	public void onRenderPlayerEvent(RenderPlayerEvent.Specials.Post event){
-		renderShieldIfActive(event.entityPlayer);
-		renderWingsIfActive(event.entityPlayer, event.partialRenderTick);
-		renderShadowWardIfActive(event.entityPlayer);
-	}
-
-	// First person
-	@SubscribeEvent
-	public void onRenderWorldLastEvent(RenderWorldLastEvent event){
-		// Now only fires in first person.
-		if(Minecraft.getMinecraft().gameSettings.thirdPersonView == 0){
-			renderShieldFirstPerson(Minecraft.getMinecraft().thePlayer);
-			renderShadowWardFirstPerson(Minecraft.getMinecraft().thePlayer);
-		}
-	}
+    private static final ResourceLocation shieldTexture = new ResourceLocation("wizardry:textures/entity/shield.png");
+    private static final ResourceLocation wingTexture = new ResourceLocation("wizardry:textures/entity/wing.png");
+    private static final ResourceLocation shadowWardTexture = new ResourceLocation("wizardry:textures/entity/shadow_ward.png");
+    private static final ResourceLocation sixthSenseTexture = new ResourceLocation("wizardry:textures/entity/sixth_sense.png");
+    private static final ResourceLocation sixthSenseOverlayTexture = new ResourceLocation("wizardry:textures/gui/sixth_sense_overlay.png");
+    private static final ResourceLocation frostOverlayTexture = new ResourceLocation("wizardry:textures/gui/frost_overlay.png");
+    private static final ResourceLocation pointerTexture = new ResourceLocation("wizardry:textures/entity/pointer.png");
+    private static final ResourceLocation targetPointerTexture = new ResourceLocation("wizardry:textures/entity/target_pointer.png");
 
     @SubscribeEvent
-    public void onRenderLivingEvent(RenderLivingEvent.Post event) {
-        		/*
+    public void onRenderPlayerArmourEvent(RenderPlayerEvent.SetArmorModel event){
+
+        ItemStack stack = event.entityPlayer.inventory.armorInventory[event.slot];
+
+        if(stack != null && stack.getItem() instanceof ItemSpectralArmour){
+            GL11.glEnable(GL11.GL_BLEND);
+        }
+    }
+
+    // Shift-scrolling to change spells
+    @SubscribeEvent
+    public void onMouseEvent(MouseEvent event){
+        if(Minecraft.getMinecraft().inGameHasFocus && Minecraft.getMinecraft().thePlayer.getHeldItem() != null
+            && Minecraft.getMinecraft().thePlayer.getHeldItem().getItem() instanceof ItemWand && event.dwheel != 0
+            && Minecraft.getMinecraft().thePlayer.isSneaking() && Wizardry.enableShiftScrolling){
+
+            event.setCanceled(true);
+
+            if(event.dwheel > 0){
+                // Packet building
+                IMessage msg = new PacketControlInput.Message(2);
+                WizardryPacketHandler.net.sendToServer(msg);
+
+            }else if(event.dwheel < 0){
+                // Packet building
+                IMessage msg = new PacketControlInput.Message(1);
+                WizardryPacketHandler.net.sendToServer(msg);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onFOVUpdateEvent(FOVUpdateEvent event){
+
+        // Bow zoom. Taken directly from EntityPlayerSP so it works exactly like vanilla.
+        if (event.entity.isUsingItem() && event.entity.getItemInUse().getItem() instanceof ItemSpectralBow)
+        {
+            int i = event.entity.getItemInUseDuration();
+            float f1 = (float)i / 20.0F;
+
+            if (f1 > 1.0F)
+            {
+                f1 = 1.0F;
+            }
+            else
+            {
+                f1 *= f1;
+            }
+
+            event.newfov *= 1.0F - f1 * 0.15F;
+        }
+    }
+
+    // Third person
+    @SubscribeEvent
+    public void onRenderPlayerEvent(RenderPlayerEvent.Specials.Post event){
+        renderShieldIfActive(event.entityPlayer);
+        renderWingsIfActive(event.entityPlayer, event.partialRenderTick);
+        renderShadowWardIfActive(event.entityPlayer);
+    }
+
+    // First person
+    @SubscribeEvent
+    public void onRenderWorldLastEvent(RenderWorldLastEvent event){
+        // Now only fires in first person.
+        if(Minecraft.getMinecraft().gameSettings.thirdPersonView == 0){
+            renderShieldFirstPerson(Minecraft.getMinecraft().thePlayer);
+            renderShadowWardFirstPerson(Minecraft.getMinecraft().thePlayer);
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderLivingEvent(RenderLivingEvent.Post event){
+		/*
 		// Frost effect
 		if(event.entity.isPotionActive(Wizardry.frost)){
 
@@ -217,43 +217,44 @@ public class WizardryClientEventHandler {
 			GL11.glPopMatrix();
 		}
 		*/
+
         Minecraft mc = Minecraft.getMinecraft();
         ExtendedPlayer properties = ExtendedPlayer.get(mc.thePlayer);
         MovingObjectPosition rayTrace = WizardryUtilities.standardEntityRayTrace(mc.theWorld, mc.thePlayer, 16);
 
-        if (properties != null && properties.selectedMinion != null) {
+        // Target selection pointer
+        if(mc.thePlayer != null && mc.thePlayer.isSneaking() && mc.thePlayer.getHeldItem() != null
+            && mc.thePlayer.getHeldItem().getItem() instanceof ItemWand && rayTrace != null
+            && rayTrace.entityHit instanceof EntityLivingBase && rayTrace.entityHit == event.entity
+            && properties != null && properties.selectedMinion != null){
+
             Tessellator tessellator = Tessellator.instance;
+
             GL11.glPushMatrix();
 
             GL11.glDisable(GL11.GL_CULL_FACE);
             GL11.glDisable(GL11.GL_LIGHTING);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            // Disabling depth test allows it to be seen through everything.
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             GL11.glColor4f(1, 1, 1, 1);
 
             GL11.glTranslated(event.x, event.y + event.entity.height + 0.5, event.z);
+
+            // This counteracts the reverse rotation behaviour when in front f5 view.
+            // Fun fact: this is a bug with vanilla too! Look at a snowball in front f5 view, for example.
             float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
             GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
             GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
 
             tessellator.startDrawingQuads();
 
-            if (mc.thePlayer.isSneaking() && mc.thePlayer.getHeldItem() != null
-                && mc.thePlayer.getHeldItem().getItem() instanceof ItemWand && rayTrace != null
-                && rayTrace.entityHit instanceof EntityLivingBase && rayTrace.entityHit == event.entity) {
-                mc.renderEngine.bindTexture(targetPointerTexture);
-            } else if (properties.selectedMinion.get() == event.entity) {
-                mc.renderEngine.bindTexture(pointerTexture);
-            } else if (mc.thePlayer.isPotionActive(Wizardry.sixthSense) && event.entity != mc.thePlayer
-                && mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense) != null
-                && event.entity.getDistanceToEntity(mc.thePlayer) < 20 * (1 + mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense).getAmplifier() * Wizardry.RANGE_INCREASE_PER_LEVEL)) {
-                mc.renderEngine.bindTexture(sixthSenseTexture);
-            }
+            mc.renderEngine.bindTexture(targetPointerTexture);
 
             tessellator.addVertexWithUV(-0.2, 0.24, 0, 0, 0);
-            tessellator.addVertexWithUV(0.2, 0.24, 0, 9f / 16f, 0);
-            tessellator.addVertexWithUV(0.2, -0.24, 0, 9f / 16f, 11f / 16f);
-            tessellator.addVertexWithUV(-0.2, -0.24, 0, 0, 11f / 16f);
+            tessellator.addVertexWithUV(0.2, 0.24, 0, 9f/16f, 0);
+            tessellator.addVertexWithUV(0.2, -0.24, 0, 9f/16f, 11f/16f);
+            tessellator.addVertexWithUV(-0.2, -0.24, 0, 0, 11f/16f);
 
             tessellator.draw();
 
@@ -263,277 +264,361 @@ public class WizardryClientEventHandler {
 
             GL11.glPopMatrix();
         }
+
+        // Summoned creature selection pointer
+        if(properties != null && properties.selectedMinion != null && properties.selectedMinion.get() == event.entity){
+
+            Tessellator tessellator = Tessellator.instance;
+
+            GL11.glPushMatrix();
+
+            GL11.glDisable(GL11.GL_CULL_FACE);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            // Disabling depth test allows it to be seen through everything.
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glColor4f(1, 1, 1, 1);
+
+            GL11.glTranslated(event.x, event.y + event.entity.height + 0.5, event.z);
+
+            // This counteracts the reverse rotation behaviour when in front f5 view.
+            // Fun fact: this is a bug with vanilla too! Look at a snowball in front f5 view, for example.
+            float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
+            GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
+
+            tessellator.startDrawingQuads();
+
+            mc.renderEngine.bindTexture(pointerTexture);
+
+            tessellator.addVertexWithUV(-0.2, 0.24, 0, 0, 0);
+            tessellator.addVertexWithUV(0.2, 0.24, 0, 9f/16f, 0);
+            tessellator.addVertexWithUV(0.2, -0.24, 0, 9f/16f, 11f/16f);
+            tessellator.addVertexWithUV(-0.2, -0.24, 0, 0, 11f/16f);
+
+            tessellator.draw();
+
+            GL11.glEnable(GL11.GL_CULL_FACE);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+            GL11.glPopMatrix();
+        }
+
+        // Sixth sense
+        if(mc.thePlayer != null && mc.thePlayer.isPotionActive(Wizardry.sixthSense) && event.entity != mc.thePlayer
+            && mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense) != null
+            && event.entity.getDistanceToEntity(mc.thePlayer) < 20*(1+mc.thePlayer.getActivePotionEffect(Wizardry.sixthSense).getAmplifier()*Wizardry.RANGE_INCREASE_PER_LEVEL)){
+
+            Tessellator tessellator = Tessellator.instance;
+
+            GL11.glPushMatrix();
+
+            GL11.glDisable(GL11.GL_CULL_FACE);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            // Disabling depth test allows it to be seen through everything.
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+            GL11.glTranslated(event.x, event.y + event.entity.height * 0.6, event.z);
+
+            // This counteracts the reverse rotation behaviour when in front f5 view.
+            // Fun fact: this is a bug with vanilla too! Look at a snowball in front f5 view, for example.
+            float yaw = mc.gameSettings.thirdPersonView == 2 ? RenderManager.instance.playerViewX : -RenderManager.instance.playerViewX;
+            GL11.glRotatef(180 - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(yaw, 1.0F, 0.0F, 0.0F);
+
+            tessellator.startDrawingQuads();
+
+            mc.renderEngine.bindTexture(sixthSenseTexture);
+
+            tessellator.addVertexWithUV(-0.6, 0.6, 0, 0, 0);
+            tessellator.addVertexWithUV(0.6, 0.6, 0, 1, 0);
+            tessellator.addVertexWithUV(0.6, -0.6, 0, 1, 1);
+            tessellator.addVertexWithUV(-0.6, -0.6, 0, 0, 1);
+
+            tessellator.draw();
+
+            GL11.glEnable(GL11.GL_CULL_FACE);
+            GL11.glDisable(GL11.GL_BLEND);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+            GL11.glPopMatrix();
+        }
     }
 
-	@SubscribeEvent
-	public void onRenderGameOverlayEvent(RenderGameOverlayEvent.Post event){
-		if(event.type == RenderGameOverlayEvent.ElementType.HELMET
-				&& Minecraft.getMinecraft().thePlayer.isPotionActive(Wizardry.sixthSense)){
-
-			GL11.glPushMatrix();
-
-			GL11.glDisable(GL11.GL_DEPTH_TEST);
-			GL11.glDepthMask(false);
-			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			GL11.glDisable(GL11.GL_ALPHA_TEST);
-			Minecraft.getMinecraft().renderEngine.bindTexture(sixthSenseOverlayTexture);
-			Tessellator tessellator = Tessellator.instance;
-			tessellator.startDrawingQuads();
-			tessellator.addVertexWithUV(0.0D, (double)event.resolution.getScaledHeight(), -90.0D, 0.0D, 1.0D);
-			tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), (double)event.resolution.getScaledHeight(), -90.0D, 1.0D, 1.0D);
-			tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), 0.0D, -90.0D, 1.0D, 0.0D);
-			tessellator.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
-			tessellator.draw();
-			GL11.glDepthMask(true);
-			GL11.glEnable(GL11.GL_DEPTH_TEST);
-			GL11.glEnable(GL11.GL_ALPHA_TEST);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-			GL11.glPopMatrix();
-		}
-
-		if(event.type == RenderGameOverlayEvent.ElementType.HELMET
-				&& Minecraft.getMinecraft().thePlayer.isPotionActive(Wizardry.frost)){
-
-			GL11.glPushMatrix();
-
-			GL11.glDisable(GL11.GL_DEPTH_TEST);
-			GL11.glDepthMask(false);
-			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			GL11.glDisable(GL11.GL_ALPHA_TEST);
-			Minecraft.getMinecraft().renderEngine.bindTexture(frostOverlayTexture);
-			Tessellator tessellator = Tessellator.instance;
-			tessellator.startDrawingQuads();
-			tessellator.addVertexWithUV(0.0D, (double)event.resolution.getScaledHeight(), -90.0D, 0.0D, 1.0D);
-			tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), (double)event.resolution.getScaledHeight(), -90.0D, 1.0D, 1.0D);
-			tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), 0.0D, -90.0D, 1.0D, 0.0D);
-			tessellator.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
-			tessellator.draw();
-			GL11.glDepthMask(true);
-			GL11.glEnable(GL11.GL_DEPTH_TEST);
-			GL11.glEnable(GL11.GL_ALPHA_TEST);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-			GL11.glPopMatrix();
-		}
-	}
-
-	private static void renderShadowWardFirstPerson(EntityPlayer entityplayer){
-		ItemStack wand = entityplayer.getHeldItem();
-		if(ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof ShadowWard || (entityplayer.isUsingItem() && wand != null && wand.getItemDamage() < wand.getMaxDamage()
-				&& wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof ShadowWard)){
+    @SubscribeEvent
+    public void onRenderGameOverlayEvent(RenderGameOverlayEvent.Post event){
+        if(event.type == RenderGameOverlayEvent.ElementType.HELMET
+            && Minecraft.getMinecraft().thePlayer.isPotionActive(Wizardry.sixthSense)){
+
+            GL11.glPushMatrix();
+
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glDepthMask(false);
+            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
+            Minecraft.getMinecraft().renderEngine.bindTexture(sixthSenseOverlayTexture);
+            Tessellator tessellator = Tessellator.instance;
+            tessellator.startDrawingQuads();
+            tessellator.addVertexWithUV(0.0D, (double)event.resolution.getScaledHeight(), -90.0D, 0.0D, 1.0D);
+            tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), (double)event.resolution.getScaledHeight(), -90.0D, 1.0D, 1.0D);
+            tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), 0.0D, -90.0D, 1.0D, 0.0D);
+            tessellator.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
+            tessellator.draw();
+            GL11.glDepthMask(true);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+            GL11.glPopMatrix();
+        }
+
+        if(event.type == RenderGameOverlayEvent.ElementType.HELMET
+            && Minecraft.getMinecraft().thePlayer.isPotionActive(Wizardry.frost)){
+
+            GL11.glPushMatrix();
+
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glDepthMask(false);
+            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
+            Minecraft.getMinecraft().renderEngine.bindTexture(frostOverlayTexture);
+            Tessellator tessellator = Tessellator.instance;
+            tessellator.startDrawingQuads();
+            tessellator.addVertexWithUV(0.0D, (double)event.resolution.getScaledHeight(), -90.0D, 0.0D, 1.0D);
+            tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), (double)event.resolution.getScaledHeight(), -90.0D, 1.0D, 1.0D);
+            tessellator.addVertexWithUV((double)event.resolution.getScaledWidth(), 0.0D, -90.0D, 1.0D, 0.0D);
+            tessellator.addVertexWithUV(0.0D, 0.0D, -90.0D, 0.0D, 0.0D);
+            tessellator.draw();
+            GL11.glDepthMask(true);
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+            GL11.glPopMatrix();
+        }
+    }
+
+    private static void renderShadowWardFirstPerson(EntityPlayer entityplayer){
+        ItemStack wand = entityplayer.getHeldItem();
+        if(ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof ShadowWard || (entityplayer.isUsingItem() && wand != null && wand.getItemDamage() < wand.getMaxDamage()
+            && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof ShadowWard)){
 
-			GL11.glPushMatrix();
-
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glPushMatrix();
+
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
-			GL11.glRotatef(-1*entityplayer.rotationYaw, 0, 1, 0);
-			GL11.glRotatef(entityplayer.rotationPitch, 1, 0, 0);
-			Minecraft.getMinecraft().renderEngine.bindTexture(shadowWardTexture);
-			Tessellator tessellator = Tessellator.instance;
+            GL11.glRotatef(-1*entityplayer.rotationYaw, 0, 1, 0);
+            GL11.glRotatef(entityplayer.rotationPitch, 1, 0, 0);
+            Minecraft.getMinecraft().renderEngine.bindTexture(shadowWardTexture);
+            Tessellator tessellator = Tessellator.instance;
 
-			GL11.glPushMatrix();
-
-			GL11.glTranslated(0, -0.3, 1.2);
-			GL11.glRotated(entityplayer.worldObj.getWorldTime()*-2, 0, 0, 1);
-			GL11.glScaled(1.1, 1.1, 1.1);
-
-			tessellator.startDrawingQuads();
+            GL11.glPushMatrix();
+
+            GL11.glTranslated(0, -0.3, 1.2);
+            GL11.glRotated(entityplayer.worldObj.getWorldTime()*-2, 0, 0, 1);
+            GL11.glScaled(1.1, 1.1, 1.1);
+
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
-			tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
-			tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
-			tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
+            tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
+            tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
+            tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
+            tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
-			tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
-			tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
-			tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
+            tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
+            tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
+            tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
+            tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			GL11.glPopMatrix();
+            GL11.glPopMatrix();
 
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glDisable(GL11.GL_BLEND);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_BLEND);
 
-			GL11.glPopMatrix();
+            GL11.glPopMatrix();
 
-		}
-	}
+        }
+    }
 
-	private static void renderShadowWardIfActive(EntityPlayer entityplayer){
-		ItemStack wand = entityplayer.getHeldItem();
-		if(ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof ShadowWard || (entityplayer.isUsingItem() && wand != null
-				&& wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof ShadowWard)){
+    private static void renderShadowWardIfActive(EntityPlayer entityplayer){
+        ItemStack wand = entityplayer.getHeldItem();
+        if(ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof ShadowWard || (entityplayer.isUsingItem() && wand != null
+            && wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof ShadowWard)){
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
-			GL11.glRotatef(180, 0, 1, 0);
-			//GL11.glRotatef(entityplayer.rotationYaw, 0, 1, 0);
-			//GL11.glRotatef(-entityplayer.rotationPitch, 1, 0, 0);
-			Minecraft.getMinecraft().renderEngine.bindTexture(shadowWardTexture);
-			Tessellator tessellator = Tessellator.instance;
+            GL11.glRotatef(180, 0, 1, 0);
+            //GL11.glRotatef(entityplayer.rotationYaw, 0, 1, 0);
+            //GL11.glRotatef(-entityplayer.rotationPitch, 1, 0, 0);
+            Minecraft.getMinecraft().renderEngine.bindTexture(shadowWardTexture);
+            Tessellator tessellator = Tessellator.instance;
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			// was 0, -0.3, 1.2
-			GL11.glTranslated(0, 0, 1.2);
-			GL11.glRotated(entityplayer.worldObj.getWorldTime()*-2, 0, 0, 1);
-			GL11.glScaled(1.1, 1.1, 1.1);
+            // was 0, -0.3, 1.2
+            GL11.glTranslated(0, 0, 1.2);
+            GL11.glRotated(entityplayer.worldObj.getWorldTime()*-2, 0, 0, 1);
+            GL11.glScaled(1.1, 1.1, 1.1);
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
-			tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
-			tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
-			tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
+            tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
+            tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
+            tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
+            tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
-			tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
-			tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
-			tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
+            tessellator.addVertexWithUV(-0.5, 0.5, -0.5, 0, 0);
+            tessellator.addVertexWithUV(-0.5, -0.5, -0.5, 0, 1);
+            tessellator.addVertexWithUV(0.5, -0.5, -0.5, 1, 1);
+            tessellator.addVertexWithUV(0.5, 0.5, -0.5, 1, 0);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			GL11.glPopMatrix();
+            GL11.glPopMatrix();
 
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glDisable(GL11.GL_BLEND);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_BLEND);
 
-			GL11.glPopMatrix();
+            GL11.glPopMatrix();
 
-		}
-	}
+        }
+    }
 
-	private static void renderWingsIfActive(EntityPlayer entityplayer, float partialTickTime){
-		ItemStack wand = entityplayer.getHeldItem();
-		if(ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof Flight || (entityplayer.isUsingItem() && wand != null
-				&& wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof Flight)){
+    private static void renderWingsIfActive(EntityPlayer entityplayer, float partialTickTime){
+        ItemStack wand = entityplayer.getHeldItem();
+        if(ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof Flight || (entityplayer.isUsingItem() && wand != null
+            && wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof Flight)){
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
-			GL11.glRotatef(-entityplayer.rotationYawHead, 0, 1, 0);
-			GL11.glRotatef(entityplayer.rotationYaw, 0, 1, 0);
-			GL11.glRotatef(180, 1, 0, 0);
+            GL11.glRotatef(-entityplayer.rotationYawHead, 0, 1, 0);
+            GL11.glRotatef(entityplayer.rotationYaw, 0, 1, 0);
+            GL11.glRotatef(180, 1, 0, 0);
 
-			Minecraft.getMinecraft().renderEngine.bindTexture(wingTexture);
-			Tessellator tessellator = Tessellator.instance;
+            Minecraft.getMinecraft().renderEngine.bindTexture(wingTexture);
+            Tessellator tessellator = Tessellator.instance;
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			GL11.glTranslated(0.1, -1.0, -0.15);
-			GL11.glRotatef(20 + 20*(float)Math.sin(entityplayer.worldObj.getWorldTime()*0.3), 0, 1, 0);
+            GL11.glTranslated(0.1, -1.0, -0.15);
+            GL11.glRotatef(20 + 20*(float)Math.sin(entityplayer.worldObj.getWorldTime()*0.3), 0, 1, 0);
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(0, 2, 0, 0, 0);
-			tessellator.addVertexWithUV(2, 2, 0, 1, 0);
-			tessellator.addVertexWithUV(2, 0, 0, 1, 1);
-			tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+            tessellator.addVertexWithUV(0, 2, 0, 0, 0);
+            tessellator.addVertexWithUV(2, 2, 0, 1, 0);
+            tessellator.addVertexWithUV(2, 0, 0, 1, 1);
+            tessellator.addVertexWithUV(0, 0, 0, 0, 1);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(0, 2, 0, 0, 0);
-			tessellator.addVertexWithUV(0, 0, 0, 0, 1);
-			tessellator.addVertexWithUV(2, 0, 0, 1, 1);
-			tessellator.addVertexWithUV(2, 2, 0, 1, 0);
+            tessellator.addVertexWithUV(0, 2, 0, 0, 0);
+            tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+            tessellator.addVertexWithUV(2, 0, 0, 1, 1);
+            tessellator.addVertexWithUV(2, 2, 0, 1, 0);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			GL11.glPopMatrix();
+            GL11.glPopMatrix();
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			GL11.glTranslated(-0.1, -1.0, -0.15);
-			GL11.glRotatef(-200 - 20*(float)Math.sin(entityplayer.worldObj.getWorldTime()*0.3), 0, 1, 0);
+            GL11.glTranslated(-0.1, -1.0, -0.15);
+            GL11.glRotatef(-200 - 20*(float)Math.sin(entityplayer.worldObj.getWorldTime()*0.3), 0, 1, 0);
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(0, 2, 0, 0, 0);
-			tessellator.addVertexWithUV(2, 2, 0, 1, 0);
-			tessellator.addVertexWithUV(2, 0, 0, 1, 1);
-			tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+            tessellator.addVertexWithUV(0, 2, 0, 0, 0);
+            tessellator.addVertexWithUV(2, 2, 0, 1, 0);
+            tessellator.addVertexWithUV(2, 0, 0, 1, 1);
+            tessellator.addVertexWithUV(0, 0, 0, 0, 1);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			tessellator.startDrawingQuads();
+            tessellator.startDrawingQuads();
 
-			tessellator.addVertexWithUV(0, 2, 0, 0, 0);
-			tessellator.addVertexWithUV(0, 0, 0, 0, 1);
-			tessellator.addVertexWithUV(2, 0, 0, 1, 1);
-			tessellator.addVertexWithUV(2, 2, 0, 1, 0);
+            tessellator.addVertexWithUV(0, 2, 0, 0, 0);
+            tessellator.addVertexWithUV(0, 0, 0, 0, 1);
+            tessellator.addVertexWithUV(2, 0, 0, 1, 1);
+            tessellator.addVertexWithUV(2, 2, 0, 1, 0);
 
-			tessellator.draw();
+            tessellator.draw();
 
-			GL11.glPopMatrix();
+            GL11.glPopMatrix();
 
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glDisable(GL11.GL_BLEND);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_BLEND);
 
-			GL11.glPopMatrix();
-		}
-	}
+            GL11.glPopMatrix();
+        }
+    }
 
-	private static void renderShieldFirstPerson(EntityPlayer entityplayer){
-		ItemStack wand = entityplayer.getHeldItem();
-		if(ExtendedPlayer.get(entityplayer).shield != null && (ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof Shield || (entityplayer.isUsingItem() && wand != null
-				&& wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof Shield))){
+    private static void renderShieldFirstPerson(EntityPlayer entityplayer){
+        ItemStack wand = entityplayer.getHeldItem();
+        if(ExtendedPlayer.get(entityplayer).shield != null && (ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof Shield || (entityplayer.isUsingItem() && wand != null
+            && wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof Shield))){
 
-			double x = entityplayer.posX;
-			double y = entityplayer.posY;
-			double z = entityplayer.posZ;
+            double x = entityplayer.posX;
+            double y = entityplayer.posY;
+            double z = entityplayer.posZ;
 
-			EntityShield shield = (EntityShield)ExtendedPlayer.get(entityplayer).shield;
+            EntityShield shield = (EntityShield)ExtendedPlayer.get(entityplayer).shield;
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			GL11.glDisable(GL11.GL_CULL_FACE);
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_SRC_ALPHA);
-			GL11.glShadeModel(GL11.GL_SMOOTH);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glDisable(GL11.GL_CULL_FACE);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_SRC_ALPHA);
+            GL11.glShadeModel(GL11.GL_SMOOTH);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
-			GL11.glTranslated(0, -0.3, 0);
+            GL11.glTranslated(0, -0.3, 0);
 
-			GL11.glRotatef(-1*entityplayer.rotationYaw, 0, 1, 0);
-			GL11.glRotatef(entityplayer.rotationPitch, 1, 0, 0);
+            GL11.glRotatef(-1*entityplayer.rotationYaw, 0, 1, 0);
+            GL11.glRotatef(entityplayer.rotationPitch, 1, 0, 0);
 
-			GL11.glTranslated(0, 0, 0.8);
+            GL11.glTranslated(0, 0, 0.8);
 
-			Tessellator tessellator = Tessellator.instance;
+            Tessellator tessellator = Tessellator.instance;
 
-			Minecraft.getMinecraft().renderEngine.bindTexture(shieldTexture);
+            Minecraft.getMinecraft().renderEngine.bindTexture(shieldTexture);
 
-			renderShield(tessellator, -1);
+            renderShield(tessellator, -1);
 
-			// Enchantment effect
+            // Enchantment effect
 			/*
 	        GL11.glPushMatrix();
 
@@ -552,52 +637,52 @@ public class WizardryClientEventHandler {
 
             GL11.glPopMatrix();
 			 */
-			GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_LIGHTING);
 
-			GL11.glShadeModel(GL11.GL_FLAT);
-			GL11.glEnable(GL11.GL_CULL_FACE);
-			GL11.glDisable(GL11.GL_BLEND);
-			//RenderHelper.enableStandardItemLighting();
+            GL11.glShadeModel(GL11.GL_FLAT);
+            GL11.glEnable(GL11.GL_CULL_FACE);
+            GL11.glDisable(GL11.GL_BLEND);
+            //RenderHelper.enableStandardItemLighting();
 
-			GL11.glPopMatrix();
-		}
-	}
+            GL11.glPopMatrix();
+        }
+    }
 
-	private static void renderShieldIfActive(EntityPlayer entityplayer){
-		ItemStack wand = entityplayer.getHeldItem();
-		if(ExtendedPlayer.get(entityplayer).shield != null && (ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof Shield || (entityplayer.isUsingItem() && wand != null
-				&& wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof Shield))){
+    private static void renderShieldIfActive(EntityPlayer entityplayer){
+        ItemStack wand = entityplayer.getHeldItem();
+        if(ExtendedPlayer.get(entityplayer).shield != null && (ExtendedPlayer.get(entityplayer).currentlyCasting() instanceof Shield || (entityplayer.isUsingItem() && wand != null
+            && wand.getItemDamage() < wand.getMaxDamage() && wand.getItem() instanceof ItemWand && WandHelper.getCurrentSpell(wand) instanceof Shield))){
 
-			double x = entityplayer.posX;
-			double y = entityplayer.posY;
-			double z = entityplayer.posZ;
+            double x = entityplayer.posX;
+            double y = entityplayer.posY;
+            double z = entityplayer.posZ;
 
-			EntityShield shield = (EntityShield)ExtendedPlayer.get(entityplayer).shield;
+            EntityShield shield = (EntityShield)ExtendedPlayer.get(entityplayer).shield;
 
-			GL11.glPushMatrix();
+            GL11.glPushMatrix();
 
-			GL11.glDisable(GL11.GL_CULL_FACE);
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_SRC_ALPHA);
-			GL11.glShadeModel(GL11.GL_SMOOTH);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
+            GL11.glDisable(GL11.GL_CULL_FACE);
+            GL11.glEnable(GL11.GL_BLEND);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_SRC_ALPHA);
+            GL11.glShadeModel(GL11.GL_SMOOTH);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
-			GL11.glTranslated(0, 0, 0);
+            GL11.glTranslated(0, 0, 0);
 
-			GL11.glRotatef(180, 0, 1, 0);
-			//GL11.glRotatef(entityplayer.rotationYaw, 0, 1, 0);
-			//GL11.glRotatef(-entityplayer.rotationPitch, 1, 0, 0);
+            GL11.glRotatef(180, 0, 1, 0);
+            //GL11.glRotatef(entityplayer.rotationYaw, 0, 1, 0);
+            //GL11.glRotatef(-entityplayer.rotationPitch, 1, 0, 0);
 
-			GL11.glTranslated(0, 0, 0.8);
+            GL11.glTranslated(0, 0, 0.8);
 
-			Tessellator tessellator = Tessellator.instance;
+            Tessellator tessellator = Tessellator.instance;
 
-			Minecraft.getMinecraft().renderEngine.bindTexture(shieldTexture);
+            Minecraft.getMinecraft().renderEngine.bindTexture(shieldTexture);
 
-			renderShield(tessellator, -1);
+            renderShield(tessellator, -1);
 
-			// Enchantment effect
+            // Enchantment effect
 			/*
 	        GL11.glPushMatrix();
 
@@ -616,93 +701,93 @@ public class WizardryClientEventHandler {
 
             GL11.glPopMatrix();
 			 */
-			GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_LIGHTING);
 
-			GL11.glShadeModel(GL11.GL_FLAT);
-			GL11.glEnable(GL11.GL_CULL_FACE);
-			GL11.glDisable(GL11.GL_BLEND);
-			//RenderHelper.enableStandardItemLighting();
+            GL11.glShadeModel(GL11.GL_FLAT);
+            GL11.glEnable(GL11.GL_CULL_FACE);
+            GL11.glDisable(GL11.GL_BLEND);
+            //RenderHelper.enableStandardItemLighting();
 
-			GL11.glPopMatrix();
-		}
-	}
+            GL11.glPopMatrix();
+        }
+    }
 
-	private static void renderShield(Tessellator tessellator, float textureOffset){
+    private static void renderShield(Tessellator tessellator, float textureOffset){
 
-		double widthOuter = 0.6d;
-		double heightOuter = 0.7d;
-		double widthInner = 0.3d;
-		double heightInner = 0.4d;
-		double depth = 0.2d;
+        double widthOuter = 0.6d;
+        double heightOuter = 0.7d;
+        double widthInner = 0.3d;
+        double heightInner = 0.4d;
+        double depth = 0.2d;
 
-		double textureSection = 1.0d;
-		double textureU = 0.0d;
+        double textureSection = 1.0d;
+        double textureU = 0.0d;
 
-		if(textureOffset != -1){
-			textureSection = 0.2d;
-			textureU = textureOffset;
-		}
+        if(textureOffset != -1){
+            textureSection = 0.2d;
+            textureU = textureOffset;
+        }
 
-		tessellator.startDrawing(5);
+        tessellator.startDrawing(5);
 
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(-widthOuter, heightOuter - 0.3, -depth, 0, 0);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(-widthOuter + 0.3, heightOuter, -depth, 0, 0);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(-widthOuter, heightOuter - 0.3, -depth, 0, 0);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(-widthOuter + 0.3, heightOuter, -depth, 0, 0);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
 
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(widthOuter - 0.3, heightOuter, -depth, 1, 0);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(widthInner, heightInner, 0, textureU + textureSection, 0.2);
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(widthOuter, heightOuter - 0.3, -depth, 1, 0);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(widthInner, heightInner, 0, textureU + textureSection, 0.2);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(widthOuter - 0.3, heightOuter, -depth, 1, 0);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(widthInner, heightInner, 0, textureU + textureSection, 0.2);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(widthOuter, heightOuter - 0.3, -depth, 1, 0);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(widthInner, heightInner, 0, textureU + textureSection, 0.2);
 
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(widthOuter, -heightOuter + 0.3, -depth, 1, 1);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(widthInner, -heightInner, 0, textureU + textureSection, 0.8);
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(widthOuter - 0.3, -heightOuter, -depth, 1, 1);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(widthInner, -heightInner, 0, textureU + textureSection, 0.8);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(widthOuter, -heightOuter + 0.3, -depth, 1, 1);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(widthInner, -heightInner, 0, textureU + textureSection, 0.8);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(widthOuter - 0.3, -heightOuter, -depth, 1, 1);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(widthInner, -heightInner, 0, textureU + textureSection, 0.8);
 
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(-widthOuter + 0.3, -heightOuter, -depth, 0, 1);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, -heightInner, 0, textureU, 0.8);
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(-widthOuter, -heightOuter + 0.3, -depth, 0, 1);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, -heightInner, 0, textureU, 0.8);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(-widthOuter + 0.3, -heightOuter, -depth, 0, 1);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, -heightInner, 0, textureU, 0.8);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(-widthOuter, -heightOuter + 0.3, -depth, 0, 1);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, -heightInner, 0, textureU, 0.8);
 
-		tessellator.setColorRGBA(0, 0, 0, 255);
-		tessellator.addVertexWithUV(-widthOuter, heightOuter - 0.3, -depth, 0, 0);
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
+        tessellator.setColorRGBA(0, 0, 0, 255);
+        tessellator.addVertexWithUV(-widthOuter, heightOuter - 0.3, -depth, 0, 0);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
 
-		tessellator.draw();
+        tessellator.draw();
 
-		tessellator.startDrawing(5);
+        tessellator.startDrawing(5);
 
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, heightInner, 0, textureU, 0.2);
 
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(widthInner, heightInner, 0, textureU + textureSection, 0.2);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(widthInner, heightInner, 0, textureU + textureSection, 0.2);
 
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(-widthInner, -heightInner, 0, textureU, 0.8);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(-widthInner, -heightInner, 0, textureU, 0.8);
 
-		tessellator.setColorOpaque(200, 200, 255);
-		tessellator.addVertexWithUV(widthInner, -heightInner, 0, textureU + textureSection, 0.8);
+        tessellator.setColorOpaque(200, 200, 255);
+        tessellator.addVertexWithUV(widthInner, -heightInner, 0, textureU + textureSection, 0.8);
 
-		tessellator.draw();
-	}
+        tessellator.draw();
+    }
 
 }

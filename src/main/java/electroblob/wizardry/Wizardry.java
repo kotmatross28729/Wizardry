@@ -132,7 +132,7 @@ public class Wizardry {
 	/** The number of ticks between the spawning of patches of decay when an entity has the decay effect.
 	 * Note that decay won't spawn again if something is already standing in it. */
 	public static final int DECAY_SPREAD_INTERVAL = 8;
-	
+
 	// Category names
 	/** The unlocalised name of the spells config category. */
 	public static final String SPELLS_CATEGORY = "spells";
@@ -140,7 +140,7 @@ public class Wizardry {
 	public static final String IDS_CATEGORY = "ids";
 	/** The unlocalised name of the ids config category. */
 	public static final String RESISTANCES_CATEGORY = "resistances";
-	
+
 	// Chest loot
 	/** The frequency with which spell books will be generated in dungeon chests. Higher numbers are more common. */
 	public static final int SPELL_BOOK_FREQUENCY = 20;
@@ -180,6 +180,13 @@ public class Wizardry {
 	public static int[] flowerDimensions = {0};
 	/** List of dimension ids in which to generate crystal ore. */
 	public static int[] towerDimensions = {0};
+
+    /** List of dimension ids in which evil wizards can spawn. */
+    public static int[] evilWizardDimensions = {0};
+
+    /**Should flowers generate on bonemeal */
+    public static boolean bonemealMagicalFlower = true;
+
 	/** Chance (out of 200) for mobs to drop spell books. */
 	public static int spellBookDropChance = 3;
 	/** Whether or not wizardry loot should generate in dungeon chests. */
@@ -445,18 +452,18 @@ public class Wizardry {
 	public final static Item wizardRobeHealing = new ItemWizardArmour(Wizardry.SILK, 1, 1, EnumElement.HEALING);
 	public final static Item wizardLeggingsHealing = new ItemWizardArmour(Wizardry.SILK, 1, 2, EnumElement.HEALING);
 	public final static Item wizardBootsHealing = new ItemWizardArmour(Wizardry.SILK, 1, 3, EnumElement.HEALING);
-	
+
 	public final static Item spawnWizard = new ItemSpawnWizard().setUnlocalizedName("spawn_wizard");
-	
+
 	public final static Item spectralHelmet = new ItemSpectralArmour(ItemArmor.ArmorMaterial.IRON, 1, 0).setTextureName("wizardry:spectral_helmet").setUnlocalizedName("spectral_helmet");
 	public final static Item spectralChestplate = new ItemSpectralArmour(ItemArmor.ArmorMaterial.IRON, 1, 1).setTextureName("wizardry:spectral_chestplate").setUnlocalizedName("spectral_chestplate");
 	public final static Item spectralLeggings = new ItemSpectralArmour(ItemArmor.ArmorMaterial.IRON, 1, 2).setTextureName("wizardry:spectral_leggings").setUnlocalizedName("spectral_leggings");
 	public final static Item spectralBoots = new ItemSpectralArmour(ItemArmor.ArmorMaterial.IRON, 1, 3).setTextureName("wizardry:spectral_boots").setUnlocalizedName("spectral_boots");
 
 	public final static Item smokeBomb = new ItemSmokeBomb().setTextureName("wizardry:smoke_bomb").setUnlocalizedName("smoke_bomb");
-	
+
 	public final static Item identificationScroll = new ItemIdentificationScroll();
-	
+
 	// Potion Effects
 	public static Potion frost;
 	public static Potion transience;
@@ -470,7 +477,7 @@ public class Wizardry {
 	public static Potion mindControl;
 	public static Potion fontOfMana;
 	public static Potion fear;
-	
+
 	// Enchantments
 	public static Enchantment magicSword;
 	public static Enchantment magicBow;
@@ -521,7 +528,7 @@ public class Wizardry {
 
 	@EventHandler
 	public void preInit(FMLPreInitializationEvent event){
-		
+
 		expandPotionTypesArray();
 
 		// Config file
@@ -568,7 +575,7 @@ public class Wizardry {
 		magicBow = new EnchantmentTimed(magicBowEnchantmentID).setName("magic_bow");
 		flamingWeapon = new EnchantmentTimed(flamingWeaponEnchantmentID).setName("flaming_weapon");
 		freezingWeapon = new EnchantmentTimed(freezingWeaponEnchantmentID).setName("freezing_weapon");
-		
+
 		// Creative tab sorter
 
 		List<Item> orderedItemList = Arrays.asList(
@@ -599,19 +606,19 @@ public class Wizardry {
 				return input.getItem();
 			}
 		});
-		
+
 		spellItemSorter = new Comparator<ItemStack>(){
 			@Override
 			public int compare(ItemStack stack1, ItemStack stack2) {
-				
+
 				if((stack1.getItem() instanceof ItemSpellBook && stack2.getItem() instanceof ItemSpellBook)
 						|| (stack1.getItem() instanceof ItemScroll && stack2.getItem() instanceof ItemScroll)){
-					
+
 					Spell spell1 = Spell.get(stack1.getItemDamage());
 					Spell spell2 = Spell.get(stack2.getItemDamage());
-					
+
 					return spell1.compareTo(spell2);
-					
+
 				}else if(stack1.getItem() instanceof ItemScroll){
 					return 1;
 				}else if(stack2.getItem() instanceof ItemScroll){
@@ -672,7 +679,7 @@ public class Wizardry {
 		entityNamePattern = Pattern.compile(entityNames);
 		*/
 	}
-	
+
 	@EventHandler
     public void serverStarting(FMLServerStartingEvent event){
         event.registerServerCommand(new CommandCastSpell());
@@ -696,7 +703,7 @@ public class Wizardry {
 		config.save();
 
 	}
-	
+
 	// As of wizardry 1.1, all keys used in the config file itself are now hardcoded, not localised. The localisations
 	// are done in the config GUI. The config file has to be written in one language or it will end up with multiple
 	// options for different languages.
@@ -706,7 +713,7 @@ public class Wizardry {
 		config.addCustomCategoryComment(Wizardry.SPELLS_CATEGORY, "Set a spell to false to disable it. Disabled spells will still have their associated spell book (mainly so the spell books don't all change) and can still be bound to wands, but cannot be cast in game, will not appear in any subsequently generated chests or wizard trades and will not drop from mobs. Disable a spell if it is causing problems, conflicts with another mod or creates an unintended exploit.");
 
 		Property property;
-		
+
 		for(Spell spell : Spell.getSpells(Spell.allSpells)){
 			property = config.get(Wizardry.SPELLS_CATEGORY, spell.getUnlocalisedName(), true, spell.getDescription());
 			property.setLanguageKey("spell." + spell.getUnlocalisedName());
@@ -716,7 +723,7 @@ public class Wizardry {
 	}
 
 	private static void setupGeneralConfig(){
-		
+
 		// This trick is borrowed from forge; it sorts the config options into the order you want them.
 		List<String> propOrder = new ArrayList<String>();
 
@@ -742,18 +749,30 @@ public class Wizardry {
 		property.setRequiresWorldRestart(true);
 		oreDimensions = property.getIntList();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "flowerDimensions", flowerDimensions, "List of dimension ids in which crystal flowers will generate.");
 		property.setLanguageKey("config.flower_dimensions");
 		property.setRequiresWorldRestart(true);
 		flowerDimensions = property.getIntList();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "towerDimensions", towerDimensions, "List of dimension ids in which wizard towers will generate.");
 		property.setLanguageKey("config.tower_dimensions");
 		property.setRequiresWorldRestart(true);
 		towerDimensions = property.getIntList();
 		propOrder.add(property.getName());
+
+        property = config.get(config.CATEGORY_GENERAL, "evilWizardDimensions", evilWizardDimensions, "List of dimension ids in which evil wizards can spawn.");
+        property.setLanguageKey("config.evil_Wizard_Dimensions");
+        property.setRequiresWorldRestart(true);
+        evilWizardDimensions = property.getIntList();
+        propOrder.add(property.getName());
+
+        property = config.get(config.CATEGORY_GENERAL, "bonemealMagicalFlower", true, "Whether Magical Flowers spawn with bonemeal.");
+        property.setLanguageKey("config.bonemealMagicalFlower");
+        property.setRequiresWorldRestart(true);
+        bonemealMagicalFlower = property.getBoolean();
+        propOrder.add(property.getName());
 
 		property = config.get(config.CATEGORY_GENERAL, "generateLoot", true, "Whether to generate wizardry loot in dungeon chests.");
 		property.setLanguageKey("config.generate_loot");
@@ -778,7 +797,7 @@ public class Wizardry {
 		property.setRequiresMcRestart(true);
 		smokeBombIsCraftable = property.getBoolean();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "useAlternateScrollRecipe", false, "Whether to require a magic crystal in the shapeless crafting recipe for blank scrolls. Set to true if another mod adds a conflicting recipe.");
 		property.setLanguageKey("config.use_alternate_scroll_recipe");
 		property.setRequiresMcRestart(true);
@@ -789,17 +808,17 @@ public class Wizardry {
 		property.setLanguageKey("config.teleport_through_unbreakable_blocks");
 		teleportThroughUnbreakableBlocks = property.getBoolean();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "showSummonedCreatureNames", true, "Whether to show summoned creatures' names and owners above their heads.");
 		property.setLanguageKey("config.show_summoned_creature_names");
 		showSummonedCreatureNames = property.getBoolean();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "friendlyFire", true, "Whether to allow players to damage their designated allies using magic.");
 		property.setLanguageKey("config.friendly_fire");
 		friendlyFire = property.getBoolean();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "telekineticDisarmament", true, "Whether to allow players to disarm other players using the telekinesis spell. Set to false to prevent stealing of items.");
 		property.setLanguageKey("config.telekinetic_disarmament");
 		telekineticDisarmament = property.getBoolean();
@@ -822,7 +841,7 @@ public class Wizardry {
 		property.setRequiresWorldRestart(false);
 		minionRevengeTargeting = property.getBoolean();
 		propOrder.add(property.getName());
-		
+
 		// These two aren't sliders because using a slider makes it difficult to fine-tune the numbers; the nature of a
 		// scaling factor means that 0.5 is as big a change as 2.0, so whilst a slider is fine for increasing the damage,
 		// it doesn't give fine enough control for values less than 1.
@@ -830,18 +849,18 @@ public class Wizardry {
 		property.setLanguageKey("config.player_damage_scaling");
 		playerDamageScale = property.getDouble();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "npcDamageScaling", 1.0, "Global damage scaling factor for the damage dealt by NPCs casting spells, relative to 1.", 0, 20);
 		property.setLanguageKey("config.npc_damage_scaling");
 		npcDamageScale = property.getDouble();
 		propOrder.add(property.getName());
-		
+
 		// This one isn't a slider either because people are likely to want exact values ("it must be at most 50.3" is a bit strange!).
 		property = config.get(config.CATEGORY_GENERAL, "castCommandMultiplierLimit", 20.0, "Upper limit for the multipliers passed into the /cast command. This is here to stop players from accidentally breaking a world/server. Large blast mutipliers can cause extreme lag - you have been warned!", 1, 255);
 		property.setLanguageKey("config.cast_command_multiplier_limit");
 		maxSpellCommandMultiplier = property.getDouble();
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "summonedCreatureTargetsWhitelist", summonedCreatureTargetsWhitelist, "List of names of entities which summoned creatures and wizards are allowed to attack, in addition to the defaults. Add mod creatures to this list if you want summoned creatures to attack them and they aren't already doing so. Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
 		property.setLanguageKey("config.summoned_creature_targets_whitelist");
 		property.setRequiresWorldRestart(true);
@@ -851,7 +870,7 @@ public class Wizardry {
 			summonedCreatureTargetsWhitelist[i] = summonedCreatureTargetsWhitelist[i].toLowerCase(Locale.ROOT).trim();
 		}
 		propOrder.add(property.getName());
-		
+
 		property = config.get(config.CATEGORY_GENERAL, "summonedCreatureTargetsBlacklist", summonedCreatureTargetsBlacklist, "List of names of entities which summoned creatures and wizards are specifically not allowed to attack, overriding the defaults and the whitelist. Add creatures to this list if allowing them to be attacked causes problems or is too destructive (removing creepers from this list is done at your own risk!). Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
 		property.setLanguageKey("config.summoned_creature_targets_blacklist");
 		property.setRequiresWorldRestart(true);
@@ -888,11 +907,11 @@ public class Wizardry {
 		propOrder.add(property.getName());
 
 		config.setCategoryPropertyOrder(config.CATEGORY_GENERAL, propOrder);
-		
+
 		// Resistances
-		
+
 		List<String> propOrder1 = new ArrayList<String>();
-		
+
 		config.addCustomCategoryComment(Wizardry.RESISTANCES_CATEGORY, "These options allow entities to be made immune to certain types of magic.");
 
 		property = config.get(Wizardry.RESISTANCES_CATEGORY, "mobsImmuneToFire", new String[]{}, "List of names of entities that are immune to fire, in addition to the defaults. Add mod creatures to this list if you want them to be immune to fire magic and they aren't already. Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
@@ -904,7 +923,7 @@ public class Wizardry {
 			MagicDamage.addEntityImmunity((Class<? extends Entity>)EntityList.stringToClassMapping.get(property.getStringList()[i]), DamageType.FIRE);
 		}
 		propOrder1.add(property.getName());
-		
+
 		property = config.get(Wizardry.RESISTANCES_CATEGORY, "mobsImmuneToIce", new String[]{}, "List of names of entities that are immune to ice, in addition to the defaults. Add mod creatures to this list if you want them to be immune to ice magic and they aren't already. Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
 		property.setLanguageKey("config.mobs_immune_to_ice");
 		property.setRequiresMcRestart(true);
@@ -914,7 +933,7 @@ public class Wizardry {
 			MagicDamage.addEntityImmunity((Class<? extends Entity>)EntityList.stringToClassMapping.get(property.getStringList()[i]), DamageType.FROST);
 		}
 		propOrder1.add(property.getName());
-		
+
 		property = config.get(Wizardry.RESISTANCES_CATEGORY, "mobsImmuneToLightning", new String[]{}, "List of names of entities that are immune to lightning, in addition to the defaults. Add mod creatures to this list if you want them to be immune to lightning magic and they aren't already. Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
 		property.setLanguageKey("config.mobs_immune_to_lightning");
 		property.setRequiresMcRestart(true);
@@ -924,7 +943,7 @@ public class Wizardry {
 			MagicDamage.addEntityImmunity((Class<? extends Entity>)EntityList.stringToClassMapping.get(property.getStringList()[i]), DamageType.SHOCK);
 		}
 		propOrder1.add(property.getName());
-		
+
 		property = config.get(Wizardry.RESISTANCES_CATEGORY, "mobsImmuneToWither", new String[]{}, "List of names of entities that are immune to wither effects, in addition to the defaults. Add mod creatures to this list if you want them to be immune to withering magic and they aren't already. Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
 		property.setLanguageKey("config.mobs_immune_to_wither");
 		property.setRequiresMcRestart(true);
@@ -934,7 +953,7 @@ public class Wizardry {
 			MagicDamage.addEntityImmunity((Class<? extends Entity>)EntityList.stringToClassMapping.get(property.getStringList()[i]), DamageType.WITHER);
 		}
 		propOrder1.add(property.getName());
-		
+
 		property = config.get(Wizardry.RESISTANCES_CATEGORY, "mobsImmuneToPoison", new String[]{}, "List of names of entities that are immune to poison, in addition to the defaults. Add mod creatures to this list if you want them to be immune to poison magic and they aren't already. Entity names are not case sensitive. For mod entities, prefix with the mod ID (e.g. wizardry:Wizard).");
 		property.setLanguageKey("config.mobs_immune_to_poison");
 		property.setRequiresMcRestart(true);
@@ -944,13 +963,13 @@ public class Wizardry {
 			MagicDamage.addEntityImmunity((Class<? extends Entity>)EntityList.stringToClassMapping.get(property.getStringList()[i]), DamageType.POISON);
 		}
 		propOrder1.add(property.getName());
-		
+
 		config.setCategoryPropertyOrder(Wizardry.RESISTANCES_CATEGORY, propOrder1);
-		
+
 		// IDs
-		
+
 		List<String> propOrder2 = new ArrayList<String>();
-		
+
 		config.addCustomCategoryComment(Wizardry.IDS_CATEGORY, "Change these IDs if they conflict with another mod.");
 
 		property = config.get(Wizardry.IDS_CATEGORY, "frostPotionID", 31, "The ID of the frost potion effect. Change if this conflicts with another mod.", 24, 255);
@@ -958,25 +977,25 @@ public class Wizardry {
 		property.setRequiresMcRestart(true);
 		frostPotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "transiencePotionID", 32, "The ID of the transience potion effect. Change if this conflicts with another mod.", 24, 255);
 		property.setLanguageKey("config.transience_potion_id");
 		property.setRequiresMcRestart(true);
 		transiencePotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "fireskinPotionID", 33, "The ID of the fireskin potion effect. Change if this conflicts with another mod.", 24, 255);
 		property.setLanguageKey("config.fireskin_potion_id");
 		property.setRequiresMcRestart(true);
 		fireskinPotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "iceShroudPotionID", 34, "The ID of the ice shroud potion effect. Change if this conflicts with another mod.", 24, 255);
 		property.setLanguageKey("config.ice_shroud_potion_id");
 		property.setRequiresMcRestart(true);
 		iceShroudPotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "staticAuraPotionID", 35, "The ID of the static aura potion effect. Change if this conflicts with another mod.", 24, 255);
 		property.setLanguageKey("config.static_aura_potion_id");
 		property.setRequiresMcRestart(true);
@@ -988,13 +1007,13 @@ public class Wizardry {
 		property.setRequiresMcRestart(true);
 		decayPotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "sixthSensePotionID", 37, "The ID of the sixth sense potion effect. Change if this conflicts with another mod.", 24, 255);
 		property.setLanguageKey("config.sixth_sense_potion_id");
 		property.setRequiresMcRestart(true);
 		sixthSensePotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "arcaneJammerPotionID", 38, "The ID of the arcane jammer potion effect. Change if this conflicts with another mod.", 24, 255);
 		property.setLanguageKey("config.arcane_jammer_potion_id");
 		property.setRequiresMcRestart(true);
@@ -1024,37 +1043,37 @@ public class Wizardry {
 		property.setRequiresMcRestart(true);
 		fearPotionID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "magicSwordEnchantmentID", 100, "The ID of the magic sword enchantment. Change if this conflicts with another mod.", 63, 255);
 		property.setLanguageKey("config.magic_sword_enchantment_id");
 		property.setRequiresMcRestart(true);
 		magicSwordEnchantmentID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "magicBowEnchantmentID", 101, "The ID of the magic bow enchantment. Change if this conflicts with another mod.", 63, 255);
 		property.setLanguageKey("config.magic_bow_enchantment_id");
 		property.setRequiresMcRestart(true);
 		magicBowEnchantmentID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "flamingWeaponEnchantmentID", 102, "The ID of the flaming weapon enchantment. Change if this conflicts with another mod.", 63, 255);
 		property.setLanguageKey("config.flaming_weapon_enchantment_id");
 		property.setRequiresMcRestart(true);
 		flamingWeaponEnchantmentID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		property = config.get(Wizardry.IDS_CATEGORY, "freezingWeaponEnchantmentID", 103, "The ID of the freezing weapon enchantment. Change if this conflicts with another mod.", 63, 255);
 		property.setLanguageKey("config.freezing_weapon_enchantment_id");
 		property.setRequiresMcRestart(true);
 		freezingWeaponEnchantmentID = property.getInt();
 		propOrder2.add(property.getName());
-		
+
 		config.setCategoryPropertyOrder(Wizardry.IDS_CATEGORY, propOrder2);
 
 	}
 
 	private static void expandPotionTypesArray(){
-		
+
 		Potion[] potionTypes = null;
 
 		for(Field f : Potion.class.getDeclaredFields()){
@@ -1078,5 +1097,5 @@ public class Wizardry {
 			}
 		}
 	}
-	
+
 }
