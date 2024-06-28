@@ -217,8 +217,9 @@ public class WizardryClientEventHandler {
 			GL11.glPopMatrix();
 		}
 		*/
-
         Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld == null) return;
+
         ExtendedPlayer properties = ExtendedPlayer.get(mc.thePlayer);
         MovingObjectPosition rayTrace = WizardryUtilities.standardEntityRayTrace(mc.theWorld, mc.thePlayer, 16);
 

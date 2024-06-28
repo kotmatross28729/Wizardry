@@ -1,3 +1,4 @@
+
 package electroblob.wizardry.client;
 
 import codechicken.nei.VisiblityData;
@@ -11,6 +12,7 @@ import electroblob.wizardry.SpellGlyphData;
 import electroblob.wizardry.WandHelper;
 import electroblob.wizardry.Wizardry;
 import electroblob.wizardry.item.ItemWand;
+import electroblob.wizardry.item.ItemWizardArmour;
 import electroblob.wizardry.packet.PacketControlInput;
 import electroblob.wizardry.packet.WizardryPacketHandler;
 import electroblob.wizardry.spell.Spell;
@@ -418,7 +420,7 @@ public class GuiArcaneWorkbench extends GuiContainer implements INEIGuiHandler {
 
     private boolean hasWand() {
         return this.inventorySlots.getSlot(ContainerArcaneWorkbench.WAND_SLOT).getHasStack()
-            && this.inventorySlots.getSlot(ContainerArcaneWorkbench.WAND_SLOT).getStack().getItem() instanceof ItemWand;
+            && (this.inventorySlots.getSlot(ContainerArcaneWorkbench.WAND_SLOT).getStack().getItem() instanceof ItemWand || this.inventorySlots.getSlot(ContainerArcaneWorkbench.WAND_SLOT).getStack().getItem() instanceof ItemWizardArmour);
     }
 
 }
